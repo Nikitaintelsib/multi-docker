@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pinaevnikita/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pinaevnikita/react-test npm test
+
+after_success:
+  - docker build -t pinaevnikita/multi-client ./client
+  - docker build -t pinaevnikita/multi-nginx ./nginx
+  - docker build -t pinaevnikita/multi-server ./server
+  - docker build -t pinaevnikita/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take this images and push it to the dockerhub
+  - docker push pinaevnikita/multi-client
+  - docker push pinaevnikita/multi-nginx
+  - docker push pinaevnikita/multi-server
+  - docker push pinaevnikita/multi-worker
